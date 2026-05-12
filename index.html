@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quotes</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="fixed-header" role="banner">
+    <div class="header-top">
+      <span class="brand neo-title">quotes</span>
+      <div class="header-actions">
+        <button id="copy-quote" class="copy-btn square-btn" aria-label="Copy quote">
+          <svg id="copy-icon" class="icon-clipboard" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="4" width="6" height="4" rx="1"/><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M9 4V2h6v2"/></svg>
+        </button>
+        <button id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Toggle theme">
+          <span class="toggle-dot"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="quote-card" id="quote-card" aria-describedby="quote-live">
+    <blockquote class="quote-text" id="quote-text"></blockquote>
+    <cite class="quote-author" id="quote-author"></cite>
+  </section>
+
+  <main class="page-body" role="main" aria-label="Random quote viewer" tabindex="0">
+    <div class="hint" aria-hidden="true">Tap/click or press Space for a new quote.</div>
+    <div class="sr-only" id="quote-live" aria-live="polite"></div>
+  </main>
+</body>
+</html>
