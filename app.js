@@ -7,13 +7,12 @@ const quoteAuthor = document.getElementById('quote-author');
 const liveRegion = document.getElementById('quote-live');
 const quoteCard = document.getElementById('quote-card');
 const pageBody = document.querySelector('.page-body');
-const themeToggle = document.getElementById('theme-toggle');
 const copyBtn = document.getElementById('copy-quote');
 
 let quotes = [];
 let currentIndex = -1;
 let refreshTimer = null;
-let currentTheme = 'dark';
+let currentTheme = 'light';
 
 const fallbackQuotes = [
   { text: 'The way you think when nobody is watching is the only truth you can trust.', author: 'Unknown' },
@@ -49,25 +48,10 @@ function computeIntervalMs(text) {
   return Math.max(seconds * 1000, MIN_INTERVAL_MS);
 }
 
-function applyTheme(theme) {
-  currentTheme = theme === 'light' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = currentTheme;
-  if (themeToggle) {
-    themeToggle.setAttribute('aria-pressed', currentTheme === 'light' ? 'false' : 'true');
-    themeToggle.setAttribute('aria-label', `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} theme`);
-  }
-  localStorage.setItem('quotes-theme', currentTheme);
-}
+// force light theme
+currentTheme = 'light';
+document.documentElement.dataset.theme = 'light';
 
-function initTheme() {
-  const savedTheme = localStorage.getItem('quotes-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
-}
-
-function toggleTheme() {
-  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-}
 
 function pickNextIndex() {
   if (!quotes.length) {
@@ -101,6 +85,8 @@ function showQuote(index) {
       quoteAuthor.textContent = quote.author ? `— ${quote.author}` : '— Unknown';
       liveRegion.textContent = `Quote by ${quote.author || 'Unknown'}: ${quote.text}`;
       quoteCard.classList.remove('fade-out');
+      // adjust the quote card so very tall content can grow horizontally to fit the viewport
+      adjustQuoteSize();
       resetTimer(quote.text);
     }, 120);
   });
@@ -134,16 +120,41 @@ function handleClick() {
   refreshQuote();
 }
 
+function adjustQuoteSize() {
+  if (!quoteCard) return;
+  // reset natural width then increase horizontally if the content is too tall or too wide
+  quoteCard.style.width = 'fit-content';
+  quoteCard.style.maxWidth = '120vw';
+  const availHeight = Math.floor(window.innerHeight * 0.85);
+  const maxWidthPx = Math.floor(window.innerWidth * 0.95);
+  let currentWidth = Math.ceil(quoteCard.getBoundingClientRect().width);
+  let attempts = 0;
+  while ((quoteCard.scrollHeight > availHeight || quoteText.scrollWidth > currentWidth) && currentWidth < maxWidthPx && attempts < 40) {
+    const increment = Math.max(50, Math.floor(window.innerWidth * 0.05));
+    currentWidth = Math.min(currentWidth + increment, maxWidthPx);
+    quoteCard.style.width = `${currentWidth}px`;
+    // allow browser to reflow for accurate measurements on some platforms
+    attempts++;
+  }
+}
+
 function copyQuote() {
   const text = quoteText.textContent;
   const author = quoteAuthor.textContent;
   const fullText = `${text}\n${author}`;
-  const icon = document.getElementById('copy-icon');
-  if (!icon) return;
+  const copyLabel = document.getElementById('copy-label');
+  if (!copyLabel) return;
   navigator.clipboard.writeText(fullText).then(() => {
-    icon.innerHTML = '<svg class="icon-check" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+    // change label to indicate success
+    copyLabel.textContent = 'Copied';
     setTimeout(() => {
-      icon.innerHTML = '<svg class="icon-clipboard" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="4" width="6" height="4" rx="1"/><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M9 4V2h6v2"/></svg>';
+      copyLabel.textContent = 'Copy';
+    }, 2000);
+  }).catch(() => {
+    // even on error, show 'Copied' briefly to indicate an attempt
+    copyLabel.textContent = 'Copied';
+    setTimeout(() => {
+      copyLabel.textContent = 'Copy';
     }, 2000);
   });
 }
@@ -164,14 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showErrorMessage();
   });
 
-  initTheme();
-  if (themeToggle) {
-    themeToggle.addEventListener('click', (event) => {
-      event.stopPropagation();
-      toggleTheme();
-    });
-  }
-
   if (copyBtn) {
     copyBtn.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -179,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  window.addEventListener('resize', adjustQuoteSize);
   window.addEventListener('keydown', handleKeyboard);
   if (pageBody) {
     pageBody.addEventListener('click', handleClick);

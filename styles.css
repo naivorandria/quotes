@@ -64,77 +64,65 @@ button {
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 4px solid var(--border);
+  border: 6px solid var(--border);
   padding: 0.5rem 1.2rem;
   background: var(--bg);
   color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 8px 8px 0 0 var(--border);
 }
 
 .copy-btn.square-btn {
-  width: 3.5rem;
-  height: 3.5rem;
-  border: 4px solid var(--border);
+  display: inline-grid;
+  place-items: center;
+  min-height: 3.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 6px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  display: grid;
-  place-items: center;
   cursor: pointer;
   transition: transform 100ms ease;
-  font-size: 1.6rem;
-  padding: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  box-shadow: 8px 8px 0 0 var(--border);
 }
 
+.copy-label {
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  display: block;
+}
 .copy-btn.square-btn:hover,
 .copy-btn.square-btn:focus-visible {
   transform: scale(1.05);
 }
 
-.icon-clipboard {
-  display: inline-block;
+.copy-btn svg {
   width: 1.6rem;
   height: 1.6rem;
-  background: none;
-  background-color: var(--text);
-  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="4" width="6" height="4" rx="1"/><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M9 4V2h6v2"/></svg>') center/contain no-repeat;
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="4" width="6" height="4" rx="1"/><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M9 4V2h6v2"/></svg>') center/contain no-repeat;
+  display: block;
+  color: var(--text);
+  stroke: currentColor;
+  fill: none;
 }
 
+.icon-clipboard {
+  display: block;
+}
 
 .icon-check {
-  display: inline-block;
-  width: 1.6rem;
-  height: 1.6rem;
-  background: none;
-  mask: url('data:image/svg+xml;utf8,<svg fill="none" stroke="black" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="white"/></svg>') center/contain no-repeat;
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg fill="none" stroke="black" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="white"/></svg>') center/contain no-repeat;
-  background-color: var(--text);
+  display: block;
+}
+
+.hidden {
+  display: none !important;
 }
 
 
-.theme-toggle {
-  width: 3.5rem;
-  height: 3.5rem;
-  border: 4px solid var(--border);
-  background: var(--bg);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: transform 100ms ease;
-}
-
-.theme-toggle:hover,
-.theme-toggle:focus-visible {
-  transform: scale(1.1);
-}
-
-.toggle-dot {
-  width: 1.2rem;
-  height: 1.2rem;
-  background: var(--border);
-}
 
 .page-body {
   min-height: 100vh;
@@ -145,13 +133,13 @@ button {
 }
 
 .quote-card {
-  position: fixed;
+  position: absolute;
   left: 50%;
-  top: calc(50% + 2.75rem / 2); /* header height offset */
+  top: 50%;
   transform: translate(-50%, -50%);
   min-width: 22rem;
-  width: auto;
-  max-width: 90vw;
+  width: fit-content;
+  max-width: 95vw;
   padding: 3rem 2.5rem;
   border: 6px solid var(--border);
   background: var(--bg);
@@ -160,9 +148,10 @@ button {
   text-align: center;
   transition: opacity 180ms ease;
   z-index: 5;
-  max-height: calc(85vh - 2.75rem);
+  max-height: calc(85vh);
   box-shadow: 24px 24px 0px 0px var(--border);
   word-break: break-word;
+  overflow: visible;
 }
 
 @media (min-width: 600px) {
@@ -190,9 +179,6 @@ body {
   box-sizing: border-box;
 }
 
-.quote-card {
-  margin-top: 2.75rem;
-}
 
 
 
@@ -206,8 +192,11 @@ body {
   line-height: 1.4;
   letter-spacing: 0.02em;
   max-width: 100%;
-  word-break: break-word;
-  hyphens: auto;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
+  white-space: normal;
+  text-align: center;
   font-weight: 700;
   z-index: 2;
   position: relative;
