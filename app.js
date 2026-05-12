@@ -8,6 +8,8 @@ const liveRegion = document.getElementById('quote-live');
 const quoteCard = document.getElementById('quote-card');
 const pageBody = document.querySelector('.page-body');
 const copyBtn = document.getElementById('copy-quote');
+const headerEl = document.querySelector('.fixed-header');
+const brandEl = document.querySelector('.brand.neo-title');
 
 let quotes = [];
 let currentIndex = -1;
@@ -51,6 +53,10 @@ function computeIntervalMs(text) {
 // force light theme
 currentTheme = 'light';
 document.documentElement.dataset.theme = 'light';
+
+// dynamic font sizing helpers
+let _baseQuoteFontSizePx = null; // captured on first call
+const _MIN_QUOTE_FONT_PX = 12; // minimum font size to avoid unreadable text
 
 
 function pickNextIndex() {
@@ -121,22 +127,76 @@ function handleClick() {
 }
 
 function adjustQuoteSize() {
-  if (!quoteCard) return;
-  // reset natural width then increase horizontally if the content is too tall or too wide
+  if (!quoteCard || !quoteText || !copyBtn || !brandEl) return;
+
+  // let the card try its natural width first
   quoteCard.style.width = 'fit-content';
-  quoteCard.style.maxWidth = '120vw';
-  const availHeight = Math.floor(window.innerHeight * 0.85);
-  const maxWidthPx = Math.floor(window.innerWidth * 0.95);
+
+  // compute horizontal limits based on header elements and 8px gaps
+  const headerRect = headerEl ? headerEl.getBoundingClientRect() : { bottom: 0 };
+  const brandRect = brandEl ? brandEl.getBoundingClientRect() : { right: 0 };
+  const copyRect = copyBtn.getBoundingClientRect();
+
+  const leftLimit = Math.max(8, Math.floor(brandRect.right) + 8);
+  const rightLimit = Math.min(window.innerWidth - 8, Math.floor(copyRect.left) - 8);
+  let availableWidth = Math.max(0, rightLimit - leftLimit);
+
+  // fallback to 80% viewport if calculations fail
+  const fallbackMax = Math.floor(window.innerWidth * 0.8);
+  const maxWidthPx = availableWidth > 0 ? availableWidth : fallbackMax;
+
+  quoteCard.style.maxWidth = `${maxWidthPx}px`;
+
+  // compute vertical allowance (must stay below header)
+  const desiredTop = (headerRect.bottom || 0) + 8; // 8px gap below header
+  const desiredBottom = Math.max(24, Math.floor(window.innerHeight * 0.03));
+  const maxAllowedHeight = Math.max(100, window.innerHeight - desiredTop - desiredBottom);
+
   let currentWidth = Math.ceil(quoteCard.getBoundingClientRect().width);
   let attempts = 0;
-  while ((quoteCard.scrollHeight > availHeight || quoteText.scrollWidth > currentWidth) && currentWidth < maxWidthPx && attempts < 40) {
-    const increment = Math.max(50, Math.floor(window.innerWidth * 0.05));
+
+  // Expand horizontally until content fits vertically or width cap reached
+  while ((quoteCard.scrollHeight > maxAllowedHeight || quoteText.scrollWidth > currentWidth) && currentWidth < maxWidthPx && attempts < 80) {
+    const increment = Math.max(40, Math.floor(window.innerWidth * 0.03));
     currentWidth = Math.min(currentWidth + increment, maxWidthPx);
     quoteCard.style.width = `${currentWidth}px`;
-    // allow browser to reflow for accurate measurements on some platforms
     attempts++;
   }
+
+  // ensure vertical fit: shrink font if still too tall
+  ensureVerticalFit(maxAllowedHeight, desiredTop, desiredBottom);
 }
+
+function ensureVerticalFit(maxAllowedHeight = null, desiredTop = 0, desiredBottom = 24) {
+  if (!quoteCard || !quoteText) return;
+
+  // get computed (responsive) font size as starting point
+  const cs = window.getComputedStyle(quoteText);
+  let fontPx = parseFloat(cs.fontSize) || 20;
+  if (!_baseQuoteFontSizePx) _baseQuoteFontSizePx = fontPx;
+
+  // remove inline size to measure natural (CSS-driven) layout
+  quoteText.style.fontSize = '';
+
+  // compute maxAllowedHeight if not provided
+  if (!maxAllowedHeight) {
+    const headerRect = headerEl ? headerEl.getBoundingClientRect() : { bottom: 0 };
+    const top = (headerRect.bottom || 0) + 8;
+    const bottom = Math.max(24, Math.floor(window.innerHeight * 0.03));
+    maxAllowedHeight = Math.max(100, window.innerHeight - top - bottom);
+  }
+
+  let currentHeight = quoteCard.getBoundingClientRect().height;
+
+  // decrease font size stepwise until content fits vertically or hits minimum
+  while (currentHeight > maxAllowedHeight && fontPx > _MIN_QUOTE_FONT_PX) {
+    fontPx = Math.max(_MIN_QUOTE_FONT_PX, fontPx - 1);
+    quoteText.style.fontSize = `${fontPx}px`;
+    // re-evaluate height
+    currentHeight = quoteCard.getBoundingClientRect().height;
+  }
+}
+
 
 function copyQuote() {
   const text = quoteText.textContent;
@@ -182,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  window.addEventListener('resize', adjustQuoteSize);
+  window.addEventListener('resize', () => { adjustQuoteSize(); ensureVerticalFit(); });
   window.addEventListener('keydown', handleKeyboard);
   if (pageBody) {
     pageBody.addEventListener('click', handleClick);
