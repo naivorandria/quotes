@@ -3,7 +3,7 @@
 A minimal static webapp that shows one random quote at a time and refreshes automatically based on the quote's read-time estimate.
 
 <p align="center">
- <img height="150" src="https://raw.githubusercontent.com/naivorandria/quotes/main/imgs/preview.png"/>
+ <img height="450" src="https://raw.githubusercontent.com/naivorandria/quotes/main/imgs/preview.png"/>
 </p>
 
 ## Files
